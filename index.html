@@ -67,16 +67,26 @@
     const V_MIN = 180;          // por debajo de esta velocidad la forma se asienta
 
     // Orden de caída: de abajo hacia arriba. "espera" = ms tras el primer impacto de la anterior
+    // "giro" = grados que rota la forma durante el vuelo (negativo = termina girando en sentido horario)
     const secuencia = [
-      { id: 'cuadroIzq',  espera: 0 },
-      { id: 'cuadroDer',  espera: 90 },
-      { id: 'triAbajo',   espera: 260 },
-      { id: 'triArriba',  espera: 260 },
-      { id: 'rectMedio',  espera: 240 },
-      { id: 'rectGrande', espera: 240 },
-      { id: 'pildora',    espera: 240 },
-      { id: 'circulo',    espera: 140 },
+      { id: 'cuadroIzq',  espera: 0,   giro: -160 },
+      { id: 'cuadroDer',  espera: 90,  giro: -220 },
+      { id: 'triAbajo',   espera: 260, giro: -120 },
+      { id: 'triArriba',  espera: 260, giro: -150 },
+      { id: 'rectMedio',  espera: 240, giro: -200 },
+      { id: 'rectGrande', espera: 240, giro: -90 },
+      { id: 'pildora',    espera: 240, giro: -180 },
+      { id: 'circulo',    espera: 140, giro: -300 },
     ];
+    const IMPULSO = -1100;      // velocidad inicial hacia arriba del lanzamiento (unidades/s)
+
+    // Posición + rotación alrededor del centro. El giro se va frenando y llega a 0° al aterrizar.
+    function dibujar(c) {
+      const avance = 1 - c.x / c.x0;            // 0 al salir, 1 al aterrizar
+      const angulo = c.giro * Math.pow(1 - avance, 1.6);
+      c.el.setAttribute('transform',
+        `translate(${c.x.toFixed(2)},${c.y.toFixed(2)}) rotate(${angulo.toFixed(2)},${c.cx},${c.cy})`);
+    }
 
     let cuerpos = [];
     let raf = null;
@@ -86,14 +96,20 @@
         const el = document.getElementById(s.id);
         el.setAttribute('transform', 'translate(0,0)');
         const caja = el.getBBox();
+        const cx = caja.x + caja.width / 2;
+        const cy = caja.y + caja.height / 2;
+        // Radio que cubre la forma en cualquier ángulo, para que empiece oculta aunque esté rotada
+        const radio = Math.hypot(caja.width, caja.height) / 2;
         // Empieza fuera del lienzo, por la esquina superior izquierda
-        const inicioY = -(caja.y + caja.height + 20);
-        const inicioX = -(caja.x + caja.width + 20);
+        const inicioY = -(cy + radio + 20);
+        const inicioX = -(cx + radio + 20);
+        // Tiempo hasta tocar su lugar, lanzada con impulso hacia arriba: y0 + v0·t + g·t²/2 = 0
+        const tiempoVuelo = (-IMPULSO + Math.sqrt(IMPULSO * IMPULSO - 2 * GRAVEDAD * inicioY)) / GRAVEDAD;
         // Velocidad horizontal constante para llegar a x = 0 justo al primer impacto
-        const tiempoCaida = Math.sqrt((2 * -inicioY) / GRAVEDAD);
-        const vx = -inicioX / tiempoCaida;
-        el.setAttribute('transform', `translate(${inicioX},${inicioY})`);
-        return { el, espera: s.espera, x: inicioX, y: inicioY, vx, v: 0, estado: 'esperando', impacto: null };
+        const vx = -inicioX / tiempoVuelo;
+        const c = { el, espera: s.espera, giro: s.giro, cx, cy, x0: inicioX, x: inicioX, y: inicioY, vx, v: IMPULSO, estado: 'esperando', impacto: null };
+        dibujar(c);
+        return c;
       });
     }
 
@@ -130,7 +146,7 @@
                 c.v = -c.v * REBOTE;
               }
             }
-            c.el.setAttribute('transform', `translate(${c.x.toFixed(2)},${c.y.toFixed(2)})`);
+            dibujar(c);
           }
           if (c.estado !== 'quieto') activos = true;
         });
