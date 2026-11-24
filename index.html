@@ -48,6 +48,14 @@
     #triAbajo .forma   { fill: var(--bosque); stroke: var(--bosque); }
     #cuadroIzq .forma  { fill: url(#selva); }
     #cuadroDer .forma  { fill: var(--salvia); }
+    /* Iconos de trazo y etiquetas: blancos por defecto, verde bosque sobre fondos claros */
+    .icono { fill: none; stroke: #fff; stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }
+    .relleno { fill: #fff; }
+    .relleno-salvia { fill: var(--salvia); stroke: var(--salvia); stroke-width: 6; stroke-linejoin: round; }
+    .etiqueta { fill: #fff; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; letter-spacing: .2px; }
+    .icono.oscuro { stroke: var(--bosque); }
+    .etiqueta.oscuro { fill: var(--bosque); }
+    .suave { opacity: .7; }
     .punto { fill: var(--dock); opacity: 0; transition: opacity .6s ease; }
     .punto.activo { fill: var(--bosque); }
     .listo .punto { opacity: 1; }
@@ -90,20 +98,71 @@
         <circle class="punto" cx="441" cy="1700" r="10" />
       </g>
       <!-- Píldora superior -->
-      <g id="pildora"><rect class="forma" x="36" y="54" width="588" height="122" rx="61" stroke-width="0" /></g>
-      <!-- Círculo superior -->
-      <g id="circulo"><circle class="forma" cx="711" cy="115" r="61" stroke-width="0" /></g>
-      <!-- Rectángulo grande -->
-      <g id="rectGrande"><rect class="forma" x="36" y="210" width="746" height="384" rx="32" stroke-width="0" /></g>
-      <!-- Rectángulo medio -->
-      <g id="rectMedio"><rect class="forma" x="36" y="612" width="746" height="124" rx="32" stroke-width="0" /></g>
-      <!-- Triángulo superior derecho -->
-      <g id="triArriba"><polygon class="forma" points="58,759 778,758 778,1174" stroke-width="10" /></g>
-      <!-- Triángulo inferior izquierdo -->
-      <g id="triAbajo"><polygon class="forma" points="40,783 40,1197 758,1197" stroke-width="10" /></g>
+      <g id="pildora">
+        <rect class="forma" x="36" y="54" width="588" height="122" rx="61" stroke-width="0" />
+        <!-- Barra de búsqueda -->
+        <circle class="icono oscuro" cx="104" cy="109" r="20" />
+        <line class="icono oscuro" x1="119" y1="124" x2="136" y2="141" />
+        <text class="etiqueta oscuro suave" x="160" y="127" font-size="36" font-weight="500">Buscar</text>
+      </g>
+      <!-- Círculo superior: mensajes -->
+      <g id="circulo">
+        <circle class="forma" cx="711" cy="115" r="61" stroke-width="0" />
+        <path class="relleno" transform="translate(711 118) scale(.78) translate(-711 -118)" d="M683 85 h56 a14 14 0 0 1 14 14 v28 a14 14 0 0 1 -14 14 h-28 l-20 16 v-16 h-8 a14 14 0 0 1 -14 -14 v-28 a14 14 0 0 1 14 -14 z" />
+      </g>
+      <!-- Rectángulo grande: widget de clima -->
+      <g id="rectGrande">
+        <rect class="forma" x="36" y="210" width="746" height="384" rx="32" stroke-width="0" />
+        <text class="etiqueta oscuro" x="76" y="276" font-size="32" font-weight="600">Bosque nublado</text>
+        <text class="etiqueta oscuro" x="70" y="392" font-size="110" font-weight="300">18°</text>
+        <!-- Nube -->
+        <path class="icono oscuro suave" d="M612 330 h86 a30 30 0 0 0 0 -60 a44 44 0 0 0 -84 -8 a34 34 0 0 0 -2 68 z" />
+        <text class="etiqueta" x="76" y="556" font-size="26" font-weight="500">Niebla · Humedad 92%</text>
+      </g>
+      <!-- Rectángulo medio: reproductor -->
+      <g id="rectMedio">
+        <rect class="forma" x="36" y="612" width="746" height="124" rx="32" stroke-width="0" />
+        <circle class="relleno" cx="108" cy="674" r="36" />
+        <polygon class="relleno-salvia" points="98,656 98,692 126,674" />
+        <text class="etiqueta" x="166" y="664" font-size="30" font-weight="600">Sonidos del bosque</text>
+        <text class="etiqueta suave" x="166" y="702" font-size="24">Lluvia suave</text>
+        <line class="icono suave" x1="540" y1="674" x2="736" y2="674" stroke-width="8" />
+        <line class="icono" x1="540" y1="674" x2="618" y2="674" stroke-width="8" />
+      </g>
+      <!-- Triángulo superior derecho: jardín -->
+      <g id="triArriba">
+        <polygon class="forma" points="58,759 778,758 778,1174" stroke-width="10" />
+        <path class="icono oscuro" d="M648 878 C648 826 688 800 740 800 C740 852 712 880 660 880 Z" />
+        <line class="icono oscuro" x1="652" y1="876" x2="706" y2="826" />
+        <text class="etiqueta oscuro" x="738" y="934" font-size="30" font-weight="600" text-anchor="end">jardín</text>
+      </g>
+      <!-- Triángulo inferior izquierdo: cámara -->
+      <g id="triAbajo">
+        <polygon class="forma" points="40,783 40,1197 758,1197" stroke-width="10" />
+        <rect class="icono" x="82" y="1048" width="104" height="74" rx="16" />
+        <path class="icono" d="M112 1048 l10 -16 h24 l10 16" />
+        <circle class="icono" cx="134" cy="1085" r="19" />
+        <text class="etiqueta" x="82" y="1166" font-size="30" font-weight="600">cámara</text>
+      </g>
       <!-- Cuadros inferiores -->
-      <g id="cuadroIzq"><rect class="forma" x="36" y="1218" width="366" height="404" rx="32" stroke-width="0" /></g>
-      <g id="cuadroDer"><rect class="forma" x="416" y="1218" width="366" height="404" rx="32" stroke-width="0" /></g>
+      <g id="cuadroIzq">
+        <rect class="forma" x="36" y="1218" width="366" height="404" rx="32" stroke-width="0" />
+        <!-- Montaña y sol: fotos -->
+        <circle class="icono suave" cx="326" cy="1290" r="18" />
+        <path class="icono suave" d="M72 1470 l84 -96 l52 56 l40 -42 l100 112" />
+        <text class="etiqueta suave" x="72" y="1546" font-size="24">Fotos</text>
+        <text class="etiqueta" x="72" y="1584" font-size="36" font-weight="600">Selva</text>
+      </g>
+      <g id="cuadroDer">
+        <rect class="forma" x="416" y="1218" width="366" height="404" rx="32" stroke-width="0" />
+        <!-- Libreta -->
+        <rect class="icono" x="545" y="1318" width="108" height="128" rx="18" />
+        <line class="icono" x1="569" y1="1360" x2="629" y2="1360" />
+        <line class="icono" x1="569" y1="1386" x2="629" y2="1386" />
+        <line class="icono" x1="569" y1="1412" x2="609" y2="1412" />
+        <text class="etiqueta" x="599" y="1520" font-size="32" font-weight="600" text-anchor="middle">notas</text>
+        <text class="etiqueta suave" x="599" y="1558" font-size="24" text-anchor="middle">3 pendientes</text>
+      </g>
     </svg>
   </div>
   <p>Toca el lienzo para repetir</p>
