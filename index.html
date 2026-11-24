@@ -86,10 +86,14 @@
         const el = document.getElementById(s.id);
         el.setAttribute('transform', 'translate(0,0)');
         const caja = el.getBBox();
-        // Empieza justo por encima del lienzo
-        const inicio = -(caja.y + caja.height + 20);
-        el.setAttribute('transform', `translate(0,${inicio})`);
-        return { el, espera: s.espera, y: inicio, v: 0, estado: 'esperando', impacto: null };
+        // Empieza fuera del lienzo, por la esquina superior izquierda
+        const inicioY = -(caja.y + caja.height + 20);
+        const inicioX = -(caja.x + caja.width + 20);
+        // Velocidad horizontal constante para llegar a x = 0 justo al primer impacto
+        const tiempoCaida = Math.sqrt((2 * -inicioY) / GRAVEDAD);
+        const vx = -inicioX / tiempoCaida;
+        el.setAttribute('transform', `translate(${inicioX},${inicioY})`);
+        return { el, espera: s.espera, x: inicioX, y: inicioY, vx, v: 0, estado: 'esperando', impacto: null };
       });
     }
 
@@ -114,8 +118,10 @@
           if (c.estado === 'cayendo') {
             c.v += GRAVEDAD * dt;
             c.y += c.v * dt;
+            c.x = Math.min(0, c.x + c.vx * dt);
             if (c.y >= 0) {
               c.y = 0;
+              c.x = 0;
               if (c.impacto === null) c.impacto = ahora;
               if (c.v < V_MIN) {
                 c.v = 0;
@@ -124,7 +130,7 @@
                 c.v = -c.v * REBOTE;
               }
             }
-            c.el.setAttribute('transform', `translate(0,${c.y.toFixed(2)})`);
+            c.el.setAttribute('transform', `translate(${c.x.toFixed(2)},${c.y.toFixed(2)})`);
           }
           if (c.estado !== 'quieto') activos = true;
         });
