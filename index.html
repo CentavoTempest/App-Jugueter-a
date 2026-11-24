@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Juguetería · Gravedad</title>
+  <style>
+    :root {
+      --page: #ececec;
+      --canvas: #ffffff;
+      --shape: #d9d9d9;
+      --text: #666;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      background: var(--page);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-family: system-ui, sans-serif;
+      color: var(--text);
+    }
+    #lienzo {
+      /* 402 x 874, escalado proporcionalmente si la pantalla es más pequeña */
+      width: min(402px, 100vw, calc((100vh - 48px) * 402 / 874));
+      aspect-ratio: 402 / 874;
+      background: var(--canvas);
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow: 0 4px 24px rgba(0,0,0,.08);
+    }
+    svg { display: block; width: 100%; height: 100%; }
+    .forma { fill: var(--shape); stroke: var(--shape); stroke-linejoin: round; }
+    p { margin: 0; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div id="lienzo" title="Toca para repetir">
+    <!-- viewBox en coordenadas del diseño original; se escala a 402 x 874 -->
+    <svg viewBox="0 0 818 1778" preserveAspectRatio="xMidYMid meet" aria-label="Formas cayendo con gravedad">
+      <!-- Píldora superior -->
+      <g id="pildora"><rect class="forma" x="36" y="54" width="588" height="122" rx="61" stroke-width="0" /></g>
+      <!-- Círculo superior -->
+      <g id="circulo"><circle class="forma" cx="711" cy="115" r="61" stroke-width="0" /></g>
+      <!-- Rectángulo grande -->
+      <g id="rectGrande"><rect class="forma" x="36" y="210" width="746" height="384" rx="32" stroke-width="0" /></g>
+      <!-- Rectángulo medio -->
+      <g id="rectMedio"><rect class="forma" x="36" y="612" width="746" height="124" rx="32" stroke-width="0" /></g>
+      <!-- Triángulo superior derecho -->
+      <g id="triArriba"><polygon class="forma" points="58,759 778,758 778,1174" stroke-width="10" /></g>
+      <!-- Triángulo inferior izquierdo -->
+      <g id="triAbajo"><polygon class="forma" points="40,783 40,1197 758,1197" stroke-width="10" /></g>
+      <!-- Cuadros inferiores -->
+      <g id="cuadroIzq"><rect class="forma" x="36" y="1218" width="366" height="404" rx="32" stroke-width="0" /></g>
+      <g id="cuadroDer"><rect class="forma" x="416" y="1218" width="366" height="404" rx="32" stroke-width="0" /></g>
+    </svg>
+  </div>
+  <p>Toca el lienzo para repetir</p>
+
+  <script>
+    // Física simple: gravedad + rebote amortiguado
+    const GRAVEDAD = 7000;      // unidades/s² (coordenadas del viewBox)
+    const REBOTE = 0.32;        // fracción de velocidad que se conserva al rebotar
+    const V_MIN = 180;          // por debajo de esta velocidad la forma se asienta
+
+    // Orden de caída: de abajo hacia arriba. "espera" = ms tras el primer impacto de la anterior
+    const secuencia = [
+      { id: 'cuadroIzq',  espera: 0 },
+      { id: 'cuadroDer',  espera: 90 },
+      { id: 'triAbajo',   espera: 260 },
+      { id: 'triArriba',  espera: 260 },
+      { id: 'rectMedio',  espera: 240 },
+      { id: 'rectGrande', espera: 240 },
+      { id: 'pildora',    espera: 240 },
+      { id: 'circulo',    espera: 140 },
+    ];
+
+    let cuerpos = [];
+    let raf = null;
+
+    function preparar() {
+      cuerpos = secuencia.map((s) => {
+        const el = document.getElementById(s.id);
+        el.setAttribute('transform', 'translate(0,0)');
+        const caja = el.getBBox();
+        // Empieza justo por encima del lienzo
+        const inicio = -(caja.y + caja.height + 20);
+        el.setAttribute('transform', `translate(0,${inicio})`);
+        return { el, espera: s.espera, y: inicio, v: 0, estado: 'esperando', impacto: null };
+      });
+    }
+
+    function iniciar() {
+      cancelAnimationFrame(raf);
+      preparar();
+      cuerpos[0].estado = 'cayendo';
+      let anterior = performance.now();
+
+      function paso(ahora) {
+        const dt = Math.min((ahora - anterior) / 1000, 1 / 30);
+        anterior = ahora;
+        let activos = false;
+
+        cuerpos.forEach((c, i) => {
+          if (c.estado === 'esperando') {
+            const previo = cuerpos[i - 1];
+            if (previo && previo.impacto !== null && ahora - previo.impacto >= c.espera) {
+              c.estado = 'cayendo';
+            }
+          }
+          if (c.estado === 'cayendo') {
+            c.v += GRAVEDAD * dt;
+            c.y += c.v * dt;
+            if (c.y >= 0) {
+              c.y = 0;
+              if (c.impacto === null) c.impacto = ahora;
+              if (c.v < V_MIN) {
+                c.v = 0;
+                c.estado = 'quieto';
+              } else {
+                c.v = -c.v * REBOTE;
+              }
+            }
+            c.el.setAttribute('transform', `translate(0,${c.y.toFixed(2)})`);
+          }
+          if (c.estado !== 'quieto') activos = true;
+        });
+
+        if (activos) raf = requestAnimationFrame(paso);
+      }
+      raf = requestAnimationFrame(paso);
+    }
+
+    document.getElementById('lienzo').addEventListener('click', iniciar);
+    window.addEventListener('load', iniciar);
+  </script>
+</body>
+</html>
