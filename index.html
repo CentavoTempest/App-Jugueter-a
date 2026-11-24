@@ -5,11 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Juguetería · Gravedad</title>
   <style>
+    /* Paleta: crema + verdes bosque / salvia */
     :root {
-      --page: #ececec;
-      --canvas: #ffffff;
-      --shape: #d9d9d9;
-      --text: #666;
+      --page: #e6e3d8;
+      --canvas: #f4f2ea;
+      --text: #3b4a3f;
+      --bosque: #2f4a39;
+      --bosque-oscuro: #233a2b;
+      --salvia: #a9b78f;
+      --salvia-clara: #cfdcc6;
+      --dock: #c9cdc0;
     }
     * { box-sizing: border-box; }
     html, body { margin: 0; height: 100%; }
@@ -30,10 +35,22 @@
       background: var(--canvas);
       overflow: hidden;
       cursor: pointer;
-      box-shadow: 0 4px 24px rgba(0,0,0,.08);
+      border-radius: 28px;
+      box-shadow: 0 6px 30px rgba(35, 58, 43, .12);
     }
     svg { display: block; width: 100%; height: 100%; }
-    .forma { fill: var(--shape); stroke: var(--shape); stroke-linejoin: round; }
+    .forma { stroke-linejoin: round; }
+    #pildora .forma    { fill: var(--dock); }
+    #circulo .forma    { fill: var(--bosque); }
+    #rectGrande .forma { fill: url(#niebla); }
+    #rectMedio .forma  { fill: var(--salvia); }
+    #triArriba .forma  { fill: var(--salvia-clara); stroke: var(--salvia-clara); }
+    #triAbajo .forma   { fill: var(--bosque); stroke: var(--bosque); }
+    #cuadroIzq .forma  { fill: url(#selva); }
+    #cuadroDer .forma  { fill: var(--salvia); }
+    .punto { fill: var(--dock); opacity: 0; transition: opacity .6s ease; }
+    .punto.activo { fill: var(--bosque); }
+    .listo .punto { opacity: 1; }
     p { margin: 0; font-size: 13px; }
     .temblor { animation: temblor 520ms ease-out; }
     @keyframes temblor {
@@ -52,6 +69,26 @@
   <div id="lienzo" title="Toca para repetir">
     <!-- viewBox en coordenadas del diseño original; se escala a 402 x 874 -->
     <svg viewBox="0 0 818 1778" preserveAspectRatio="xMidYMid meet" aria-label="Formas cayendo con gravedad">
+      <defs>
+        <!-- Widget brumoso: claro arriba, salvia abajo -->
+        <linearGradient id="niebla" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#e3e6db" />
+          <stop offset=".55" stop-color="#c3ccb6" />
+          <stop offset="1" stop-color="#93a483" />
+        </linearGradient>
+        <!-- Widget de selva: verde muy oscuro con luz cálida arriba -->
+        <linearGradient id="selva" x1="0" y1="0" x2=".35" y2="1">
+          <stop offset="0" stop-color="#4f6648" />
+          <stop offset=".45" stop-color="#2a3f2f" />
+          <stop offset="1" stop-color="#16251b" />
+        </linearGradient>
+      </defs>
+      <!-- Indicador de páginas: aparece al terminar -->
+      <g id="puntos">
+        <circle class="punto activo" cx="377" cy="1700" r="10" />
+        <circle class="punto" cx="409" cy="1700" r="10" />
+        <circle class="punto" cx="441" cy="1700" r="10" />
+      </g>
       <!-- Píldora superior -->
       <g id="pildora"><rect class="forma" x="36" y="54" width="588" height="122" rx="61" stroke-width="0" /></g>
       <!-- Círculo superior -->
@@ -106,6 +143,7 @@
       svg.classList.remove('temblor');
       void svg.getBoundingClientRect();   // reinicia la animación si ya estaba aplicada
       svg.classList.add('temblor');
+      document.getElementById('lienzo').classList.add('listo');
     }
 
     let cuerpos = [];
@@ -142,6 +180,7 @@
 
     function iniciar() {
       cancelAnimationFrame(raf);
+      document.getElementById('lienzo').classList.remove('listo');
       preparar();
       cuerpos[0].estado = 'cayendo';
       let anterior = performance.now();
